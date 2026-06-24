@@ -1,0 +1,185 @@
+---
+// StatsDashboard component for rendering developer task metrics and analytics
+---
+<div id="stats-dashboard-view" class="hidden space-y-6">
+  <!-- Section Title -->
+  <div>
+    <h2 class="text-2xl font-semibold tracking-tight">System Performance.</h2>
+    <p class="text-sm text-body mt-1">Review completion rates, project distributions, and task logs.</p>
+  </div>
+
+  <!-- Highlights Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Completion Rate Card -->
+    <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level3 flex flex-col justify-between h-48 relative overflow-hidden">
+      <!-- Ambient mesh gradient accent -->
+      <div class="absolute -right-16 -top-16 w-32 h-32 rounded-full bg-gradient-to-br from-violet-soft to-highlight-pink opacity-20 filter blur-xl"></div>
+      
+      <div>
+        <span class="text-[10px] font-mono text-mute tracking-wider uppercase block">Completion Efficiency</span>
+        <span class="text-3xl font-semibold mt-2 block" id="stats-completion-percent">0%</span>
+      </div>
+      <div class="flex items-center gap-3 pt-4 border-t border-hairline mt-auto">
+        <!-- Minimal visual progress bar -->
+        <div class="flex-1 h-1.5 bg-canvas-soft-2 rounded-full overflow-hidden">
+          <div id="stats-completion-bar" class="h-full bg-success w-0 transition-all duration-500"></div>
+        </div>
+        <span id="stats-completion-fraction" class="text-xs font-mono text-body">0/0</span>
+      </div>
+    </div>
+
+    <!-- Active Tasks Card -->
+    <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level3 flex flex-col justify-between h-48">
+      <div>
+        <span class="text-[10px] font-mono text-mute tracking-wider uppercase block">Open Backlog</span>
+        <span class="text-3xl font-semibold mt-2 block" id="stats-open-tasks">0</span>
+      </div>
+      <div class="flex justify-between items-center text-xs font-mono text-mute pt-4 border-t border-hairline mt-auto">
+        <span>In Progress: <span class="text-ink font-semibold" id="stats-inprogress-count">0</span></span>
+        <span>Todo: <span class="text-ink font-semibold" id="stats-todo-count">0</span></span>
+      </div>
+    </div>
+
+    <!-- Productivity Index Card -->
+    <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level3 flex flex-col justify-between h-48 relative overflow-hidden">
+      <div class="absolute -left-16 -bottom-16 w-32 h-32 rounded-full bg-gradient-to-tr from-cyan-soft to-gradient-develop-end opacity-20 filter blur-xl"></div>
+      <div>
+        <span class="text-[10px] font-mono text-mute tracking-wider uppercase block">Focus Index</span>
+        <span class="text-3xl font-semibold mt-2 block" id="stats-focus-index">Low</span>
+      </div>
+      <div class="text-xs text-body pt-4 border-t border-hairline mt-auto flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-violet-deep" id="stats-focus-dot"></span>
+        <span id="stats-focus-label">Complete more high priority tasks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Distribution Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Workload Distribution by Project -->
+    <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level3 space-y-4">
+      <span class="text-[10px] font-mono text-mute tracking-wider uppercase block">Workload Allocation</span>
+      
+      <div class="space-y-3 pt-2">
+        <!-- Work -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-violet-deep border border-violet-soft"></span>
+              Work
+            </span>
+            <span class="font-mono text-mute" id="stats-alloc-Work">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-Work" class="h-full bg-violet-deep w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Personal -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-deep border border-cyan-soft"></span>
+              Personal
+            </span>
+            <span class="font-mono text-mute" id="stats-alloc-Personal">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-Personal" class="h-full bg-cyan-deep w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Side Projects -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-warning-deep border border-warning-soft"></span>
+              Side Projects
+            </span>
+            <span class="font-mono text-mute" id="stats-alloc-Side">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-Side" class="h-full bg-warning-deep w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priority Distribution -->
+    <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level3 space-y-4">
+      <span class="text-[10px] font-mono text-mute tracking-wider uppercase block">Priority Breakdown</span>
+      
+      <div class="space-y-3 pt-2">
+        <!-- High Priority -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-error border border-error-soft"></span>
+              High Priority
+            </span>
+            <span class="font-mono text-mute" id="stats-priority-High">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-High" class="h-full bg-error w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Medium Priority -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-warning border border-warning-soft"></span>
+              Medium Priority
+            </span>
+            <span class="font-mono text-mute" id="stats-priority-Medium">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-Medium" class="h-full bg-warning w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Low Priority -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-ink flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-hairline-strong border border-hairline"></span>
+              Low Priority
+            </span>
+            <span class="font-mono text-mute" id="stats-priority-Low">0% (0)</span>
+          </div>
+          <div class="h-2 bg-canvas-soft-2 rounded-full overflow-hidden">
+            <div id="stats-bar-Low" class="h-full bg-hairline-strong w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table (Completed Tasks Log) -->
+  <div class="bg-canvas border border-hairline rounded-md overflow-hidden shadow-level3">
+    <div class="p-4 border-b border-hairline bg-canvas-soft flex items-center justify-between">
+      <span class="text-[10px] font-mono text-mute tracking-wider uppercase">Audit Log (Recent Completions)</span>
+      <span id="stats-log-count" class="text-xs font-mono text-mute">0 items</span>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-canvas-soft border-b border-hairline">
+            <th class="p-3 text-[10px] font-mono text-mute uppercase tracking-wider">ID</th>
+            <th class="p-3 text-[10px] font-mono text-mute uppercase tracking-wider">Task Title</th>
+            <th class="p-3 text-[10px] font-mono text-mute uppercase tracking-wider">Project</th>
+            <th class="p-3 text-[10px] font-mono text-mute uppercase tracking-wider">Priority</th>
+            <th class="p-3 text-[10px] font-mono text-mute uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody id="stats-completed-table-body" class="divide-y divide-hairline text-sm">
+          <!-- Rows dynamically populated by JS -->
+          <tr>
+            <td colspan="5" class="p-8 text-center text-xs text-mute font-mono">No completions tracked in current backlog</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

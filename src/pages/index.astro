@@ -1,11 +1,1097 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import TaskSidebar from '../components/TaskSidebar.astro';
+import CommandBar from '../components/CommandBar.astro';
+import TaskDetailsDrawer from '../components/TaskDetailsDrawer.astro';
+import StatsDashboard from '../components/StatsDashboard.astro';
+import ToastContainer from '../components/ToastContainer.astro';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Task.sh — Developer Task Manager">
+  <!-- Top navigation bar -->
+  <header class="h-16 bg-canvas border-b border-hairline flex items-center justify-between px-6 z-20 shrink-0 sticky top-0">
+    <div class="flex items-center gap-4">
+      <!-- Hamburger Toggle Button for mobile -->
+      <button 
+        id="sidebar-toggle-btn" 
+        class="md:hidden p-2 -ml-2 rounded-sm text-body hover:bg-canvas-soft-2 cursor-pointer transition-colors"
+        aria-label="Toggle navigation"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 fill-ink" viewBox="0 0 75 65" xmlns="http://www.w3.org/2000/svg">
+          <path d="M37.5 0L75 65H0L37.5 0Z" />
+        </svg>
+        <span class="font-sans font-semibold tracking-tight text-base">Task.sh</span>
+      </div>
+      <div class="h-4 w-px bg-hairline"></div>
+      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-mute">
+        <span>Engine: Astro v7.0</span>
+        <span class="text-[9px] bg-canvas-soft-2 border border-hairline px-1 rounded-sm text-body">production</span>
+      </div>
+    </div>
+
+    <!-- Search & Command CTA -->
+    <div class="flex items-center gap-3">
+      <!-- Quick Command Bar launcher -->
+      <button 
+        id="launcher-btn" 
+        class="h-8 px-3 bg-canvas text-ink border border-hairline text-xs font-medium rounded-sm flex items-center gap-2 hover:bg-canvas-soft-2 cursor-pointer transition-colors shadow-xs"
+      >
+        <span class="text-mute">Cmd + K Console</span>
+        <kbd class="px-1 py-0.5 text-[9px] font-mono bg-canvas-soft border border-hairline rounded-sm text-mute">⌘K</kbd>
+      </button>
+      
+      <!-- Mock User Badge -->
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center border border-hairline-strong text-on-primary text-xs font-semibold select-none">
+        U
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Body Grid -->
+  <div class="flex flex-1 h-[calc(100vh-64px)] overflow-hidden relative">
+    <!-- Mobile Sidebar Backdrop -->
+    <div 
+      id="sidebar-mobile-overlay" 
+      class="fixed inset-0 z-20 bg-primary/10 backdrop-blur-[1px] hidden transition-opacity duration-200 md:hidden"
+    ></div>
+
+    <!-- Sidebar navigation -->
+    <TaskSidebar />
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 min-w-0 overflow-y-auto px-6 sm:px-8 py-8 bg-canvas-soft relative">
+      <!-- Top Ambient Mesh Gradient -->
+      <div class="absolute top-0 left-0 right-0 h-80 mesh-gradient-bg pointer-events-none z-0"></div>
+
+      <div class="max-w-4xl mx-auto space-y-6 relative z-10">
+        
+        <!-- Dashboard / Task manager views -->
+        <div id="tasks-manager-view" class="space-y-6">
+          
+          <!-- Banner / Period-Terminated Sentence Case Slogan -->
+          <div>
+            <span class="text-[10px] font-mono bg-link-bg-soft/60 text-link-deep border border-link/10 px-2 py-0.5 rounded-full inline-block mb-3">
+              Task Dashboard
+            </span>
+            <h1 class="text-3xl font-semibold tracking-tight text-ink">Manage your focus. Ship your goals.</h1>
+            <p class="text-sm text-body mt-1.5">A lightning-fast developer task manager persistence-backed by localStorage.</p>
+          </div>
+
+          <!-- Quick Task Form -->
+          <div class="bg-canvas border border-hairline rounded-md p-5 shadow-level3 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-3">
+              <!-- Task input field -->
+              <input 
+                type="text" 
+                id="quick-add-input" 
+                placeholder="What needs to be done next? (e.g. Write API endpoints...)" 
+                class="flex-1 h-10 px-3 bg-canvas-soft hover:bg-canvas border border-hairline rounded-sm text-sm text-ink focus:outline-hidden focus:bg-canvas focus:border-primary focus:ring-0 transition-colors"
+              />
+              
+              <!-- Action triggers -->
+              <div class="flex gap-2">
+                <select 
+                  id="quick-add-project" 
+                  class="h-10 px-2 bg-canvas border border-hairline rounded-sm text-xs font-medium text-ink focus:outline-hidden focus:border-primary focus:ring-0 cursor-pointer"
+                >
+                  <option value="Inbox">Inbox</option>
+                  <option value="Work">Work</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Side Projects">Side Projects</option>
+                </select>
+
+                <select 
+                  id="quick-add-priority" 
+                  class="h-10 px-2 bg-canvas border border-hairline rounded-sm text-xs font-medium text-ink focus:outline-hidden focus:border-primary focus:ring-0 cursor-pointer"
+                >
+                  <option value="low">Low Priority</option>
+                  <option value="medium" selected>Medium Priority</option>
+                  <option value="high">High Priority</option>
+                </select>
+
+                <button 
+                  id="quick-add-btn" 
+                  class="px-4 h-10 bg-primary text-on-primary hover:bg-ink text-sm font-semibold rounded-sm transition-colors cursor-pointer"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter & Control Bar -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-hairline pb-4">
+            <!-- Filter Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
+              <button data-filter="all" class="filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill bg-primary text-on-primary cursor-pointer transition-all">All</button>
+              <button data-filter="todo" class="filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill text-body hover:text-ink hover:bg-canvas-soft-2 cursor-pointer transition-all">Todo</button>
+              <button data-filter="in-progress" class="filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill text-body hover:text-ink hover:bg-canvas-soft-2 cursor-pointer transition-all">In Progress</button>
+              <button data-filter="done" class="filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill text-body hover:text-ink hover:bg-canvas-soft-2 cursor-pointer transition-all">Completed</button>
+            </div>
+
+            <!-- Sorting & Search controls -->
+            <div class="flex items-center gap-3">
+              <!-- Search inside current view -->
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="search-input" 
+                  placeholder="Search tasks..." 
+                  class="w-48 h-8 pl-8 pr-3 bg-canvas border border-hairline rounded-sm text-xs text-ink focus:outline-hidden focus:border-primary focus:ring-0"
+                />
+                <svg class="w-3.5 h-3.5 text-mute absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+
+              <!-- Sort select -->
+              <select 
+                id="sort-select" 
+                class="h-8 px-2 bg-canvas border border-hairline rounded-sm text-xs font-medium text-ink focus:outline-hidden focus:border-primary focus:ring-0 cursor-pointer"
+              >
+                <option value="createdAt-desc">Newest First</option>
+                <option value="createdAt-asc">Oldest First</option>
+                <option value="priority-desc">Priority: High to Low</option>
+                <option value="dueDate-asc">Due Date: Soonest</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Empty State (Hidden initially) -->
+          <div id="empty-state" class="bg-canvas border border-hairline rounded-md p-12 text-center shadow-level2 space-y-3 hidden">
+            <div class="inline-flex p-3 bg-canvas-soft border border-hairline rounded-full">
+              <svg class="w-6 h-6 text-mute" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 class="text-sm font-semibold text-ink">No tasks found.</h3>
+            <p class="text-xs text-mute max-w-xs mx-auto">Create a task above or use the Cmd+K developer console to speed up operations.</p>
+          </div>
+
+          <!-- Tasks List Container -->
+          <div id="tasks-list" class="space-y-3">
+            <!-- Dynamic task items go here -->
+          </div>
+        </div>
+
+        <!-- Metrics view container -->
+        <StatsDashboard />
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Command Bar overlay -->
+  <CommandBar />
+
+  <!-- Task Details drawer -->
+  <TaskDetailsDrawer />
+
+  <!-- Toast alerts container -->
+  <ToastContainer />
 </Layout>
+
+<script>
+  // Core state management
+  interface Subtask {
+    id: string;
+    title: string;
+    completed: boolean;
+  }
+
+  interface Task {
+    id: string;
+    title: string;
+    description: string;
+    status: 'todo' | 'in-progress' | 'done';
+    priority: 'low' | 'medium' | 'high';
+    project: string;
+    dueDate: string;
+    notes: string;
+    subtasks: Subtask[];
+    createdAt: number;
+  }
+
+  // Seed / mock data if empty
+  const SEED_TASKS: Task[] = [
+    {
+      id: "TASK-01",
+      title: "Explore the Cmd+K developer console",
+      description: "Learn keyboard-driven commands inside Task.sh.",
+      status: "in-progress",
+      priority: "high",
+      project: "Work",
+      dueDate: new Date().toISOString().split('T')[0],
+      notes: "Type '/' in the console or click Cmd+K to launch. Use /add <title> to speed create tasks.",
+      subtasks: [
+        { id: "sub-1", title: "Launch modal with Cmd+K", completed: true },
+        { id: "sub-2", title: "Execute an /add command", completed: false }
+      ],
+      createdAt: Date.now() - 3600000 * 2
+    },
+    {
+      id: "TASK-02",
+      title: "Design premium landing page layouts",
+      description: "Draft canvas designs and grid visualizers.",
+      status: "todo",
+      priority: "medium",
+      project: "Side Projects",
+      dueDate: "",
+      notes: "Reference Vercel's design tokens and geometric letter spacing values.",
+      subtasks: [],
+      createdAt: Date.now() - 3600000 * 5
+    },
+    {
+      id: "TASK-03",
+      title: "Complete project milestone review",
+      description: "Verify QA tests and finalize production readiness.",
+      status: "done",
+      priority: "high",
+      project: "Work",
+      dueDate: new Date().toISOString().split('T')[0],
+      notes: "All test cases passed successfully in sandbox environments.",
+      subtasks: [
+        { id: "sub-3", title: "Write regression tests", completed: true },
+        { id: "sub-4", title: "Deploy to staging", completed: true }
+      ],
+      createdAt: Date.now() - 3600000 * 24
+    },
+    {
+      id: "TASK-04",
+      title: "Organize personal tax receipts",
+      description: "Submit quarterly expense claims.",
+      status: "todo",
+      priority: "low",
+      project: "Personal",
+      dueDate: "",
+      notes: "",
+      subtasks: [],
+      createdAt: Date.now() - 3600000 * 48
+    }
+  ];
+
+  // Store variables
+  let tasks: Task[] = [];
+  let activeView: string = 'all'; // all, today, backlog, project-*, dashboard
+  let statusFilter: string = 'all'; // all, todo, in-progress, done
+  let searchTerm: string = '';
+  let sortBy: string = 'createdAt-desc';
+  let selectedTaskId: string | null = null;
+
+  // Initialize
+  function initStore() {
+    const raw = localStorage.getItem('tasks_store');
+    if (raw) {
+      try {
+        tasks = JSON.parse(raw);
+      } catch (e) {
+        tasks = SEED_TASKS;
+      }
+    } else {
+      tasks = SEED_TASKS;
+      saveToStorage();
+    }
+  }
+
+  function saveToStorage() {
+    localStorage.setItem('tasks_store', JSON.stringify(tasks));
+    updateSidebarBadges();
+    renderTasks();
+    if (activeView === 'dashboard') {
+      renderStats();
+    }
+  }
+
+  // Helper selectors
+  const tasksList = document.getElementById('tasks-list');
+  const emptyState = document.getElementById('empty-state');
+  const quickInput = document.getElementById('quick-add-input') as HTMLInputElement;
+  const quickProject = document.getElementById('quick-add-project') as HTMLSelectElement;
+  const quickPriority = document.getElementById('quick-add-priority') as HTMLSelectElement;
+  const quickBtn = document.getElementById('quick-add-btn');
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+  const tasksManagerView = document.getElementById('tasks-manager-view');
+  const statsDashboardView = document.getElementById('stats-dashboard-view');
+
+  // Trigger Toasts globally typed
+  declare global {
+    interface Window {
+      showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+    }
+  }
+
+  // Sidebar badges count update
+  function updateSidebarBadges() {
+    // Inbox (All active)
+    const allActive = tasks.filter(t => t.status !== 'done').length;
+    document.getElementById('badge-all')!.innerText = String(allActive);
+
+    // Today (due today & not done)
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayActive = tasks.filter(t => t.status !== 'done' && t.dueDate === todayStr).length;
+    document.getElementById('badge-today')!.innerText = String(todayActive);
+
+    // Backlog (no due date & not done)
+    const backlogActive = tasks.filter(t => t.status !== 'done' && !t.dueDate).length;
+    document.getElementById('badge-backlog')!.innerText = String(backlogActive);
+
+    // Projects active
+    ['Work', 'Personal', 'Side Projects'].forEach(projName => {
+      const activeCount = tasks.filter(t => t.project === projName && t.status !== 'done').length;
+      let badgeId = 'badge-project-' + (projName === 'Side Projects' ? 'Side' : projName);
+      const el = document.getElementById(badgeId);
+      if (el) el.innerText = String(activeCount);
+    });
+  }
+
+  // Render main tasks list
+  function renderTasks() {
+    if (!tasksList) return;
+    tasksList.innerHTML = '';
+
+    // Filter tasks based on View & filters
+    let filtered = tasks;
+
+    // View filter
+    if (activeView === 'today') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      filtered = filtered.filter(t => t.dueDate === todayStr);
+    } else if (activeView === 'backlog') {
+      filtered = filtered.filter(t => !t.dueDate);
+    } else if (activeView.startsWith('project-')) {
+      const proj = activeView.substring(8);
+      filtered = filtered.filter(t => t.project === proj);
+    }
+
+    // Status filter tabs
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(t => t.status === statusFilter);
+    }
+
+    // Search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.title.toLowerCase().includes(term) || 
+        t.description.toLowerCase().includes(term) ||
+        t.id.toLowerCase().includes(term)
+      );
+    }
+
+    // Sort order
+    filtered.sort((a, b) => {
+      if (sortBy === 'createdAt-desc') return b.createdAt - a.createdAt;
+      if (sortBy === 'createdAt-asc') return a.createdAt - b.createdAt;
+      if (sortBy === 'priority-desc') {
+        const weight = { high: 3, medium: 2, low: 1 };
+        return weight[b.priority] - weight[a.priority];
+      }
+      if (sortBy === 'dueDate-asc') {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return a.dueDate.localeCompare(b.dueDate);
+      }
+      return 0;
+    });
+
+    if (filtered.length === 0) {
+      emptyState?.classList.remove('hidden');
+      tasksList.classList.add('hidden');
+      return;
+    }
+
+    emptyState?.classList.add('hidden');
+    tasksList.classList.remove('hidden');
+
+    filtered.forEach(task => {
+      const card = document.createElement('div');
+      
+      // Styling bases
+      const isDone = task.status === 'done';
+      const borderClass = isDone ? 'border-hairline bg-canvas/60' : 'border-hairline bg-canvas hover:border-hairline-strong';
+      const textClass = isDone ? 'line-through text-mute font-normal' : 'text-ink font-medium';
+      
+      // Priority Dot Style
+      let priorityDot = 'bg-hairline-strong border-hairline';
+      if (task.priority === 'high') priorityDot = 'bg-error border-error-soft';
+      if (task.priority === 'medium') priorityDot = 'bg-warning border-warning-soft';
+
+      // Due date warning if active
+      let dueDateBadge = '';
+      if (task.dueDate && !isDone) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isOverdue = task.dueDate < todayStr;
+        const colorClass = isOverdue ? 'bg-error-soft/40 text-error-deep border-error-soft' : 'bg-canvas-soft border-hairline text-body';
+        dueDateBadge = `
+          <span class="text-[10px] font-mono px-2 py-0.5 border rounded-sm flex items-center gap-1 ${colorClass}">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            ${task.dueDate}
+          </span>
+        `;
+      }
+
+      // Checkbox tick mark
+      const checkedSvg = isDone ? `
+        <svg class="w-3.5 h-3.5 text-on-primary fill-current" viewBox="0 0 20 20">
+          <path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/>
+        </svg>
+      ` : '';
+
+      // Project bubble color tag
+      let projectDotColor = 'bg-violet-deep';
+      if (task.project === 'Personal') projectDotColor = 'bg-cyan-deep';
+      if (task.project === 'Side Projects') projectDotColor = 'bg-warning-deep';
+
+      card.className = `border rounded-md p-4 flex items-center justify-between gap-4 transition-all duration-150 shadow-level2 ${borderClass} group cursor-pointer`;
+      card.setAttribute('data-task-card', task.id);
+      card.innerHTML = `
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <!-- Checkbox container -->
+          <button 
+            data-task-check="${task.id}" 
+            class="w-5 h-5 rounded-sm border ${isDone ? 'bg-primary border-primary' : 'border-hairline-strong bg-canvas hover:border-ink'} flex items-center justify-center cursor-pointer transition-colors focus:outline-hidden"
+          >
+            ${checkedSvg}
+          </button>
+          
+          <!-- Priority tag & Title -->
+          <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-2 h-2 rounded-full border shrink-0 ${priorityDot}"></span>
+              <span class="text-sm truncate select-text ${textClass}">${task.title}</span>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] text-mute font-mono">
+              <span>${task.id}</span>
+              <span>•</span>
+              <span class="flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full ${projectDotColor}"></span>
+                ${task.project}
+              </span>
+              ${task.subtasks.length > 0 ? `
+                <span>•</span>
+                <span>Subtasks: ${task.subtasks.filter(s => s.completed).length}/${task.subtasks.length}</span>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          ${dueDateBadge}
+          
+          <!-- Details Action button -->
+          <button 
+            data-task-detail="${task.id}" 
+            class="h-7 px-2.5 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-xs font-medium rounded-sm cursor-pointer transition-colors"
+          >
+            Details
+          </button>
+
+          <!-- Hover deletion trigger -->
+          <button 
+            data-task-delete="${task.id}" 
+            class="h-7 w-7 bg-canvas border border-hairline hover:bg-error-soft text-mute hover:text-error-deep text-xs rounded-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all"
+            title="Delete task"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      `;
+
+      tasksList.appendChild(card);
+    });
+
+    // Wire up dynamic events
+    // Complete/Undo checkbox
+    document.querySelectorAll('[data-task-check]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-task-check')!;
+        toggleTaskDone(id);
+      });
+    });
+
+    // Open detail drawer on Details button click
+    document.querySelectorAll('[data-task-detail]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-task-detail')!;
+        openDrawer(id);
+      });
+    });
+
+    // Open detail drawer on anywhere in the card click
+    document.querySelectorAll('[data-task-card]').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Prevent opening if they clicked the checkbox, delete, or details buttons
+        if ((e.target as HTMLElement).closest('[data-task-check], [data-task-delete], [data-task-detail]')) {
+           return;
+        }
+        const id = card.getAttribute('data-task-card')!;
+        openDrawer(id);
+      });
+    });
+
+    // Delete task immediately
+    document.querySelectorAll('[data-task-delete]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-task-delete')!;
+        deleteTask(id);
+      });
+    });
+  }
+
+  // Create new task logic
+  function createTask(title: string, project: string = 'Inbox', priority: 'low'|'medium'|'high' = 'medium') {
+    if (!title.trim()) return;
+
+    // Generate unique numerical identifier
+    const maxNum = tasks.reduce((max, task) => {
+      const num = parseInt(task.id.replace('TASK-', ''));
+      return isNaN(num) ? max : Math.max(max, num);
+    }, 0);
+    const newId = `TASK-${String(maxNum + 1).padStart(2, '0')}`;
+
+    const newTask: Task = {
+      id: newId,
+      title: title.trim(),
+      description: '',
+      status: 'todo',
+      priority: priority,
+      project: project,
+      dueDate: '',
+      notes: '',
+      subtasks: [],
+      createdAt: Date.now()
+    };
+
+    tasks.unshift(newTask);
+    saveToStorage();
+    window.showToast(`Task ${newId} created successfully.`, 'success');
+  }
+
+  function toggleTaskDone(id: string) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    task.status = task.status === 'done' ? 'todo' : 'done';
+    saveToStorage();
+
+    if (task.status === 'done') {
+      window.showToast(`Task ${id} completed. Nice work!`, 'success');
+    } else {
+      window.showToast(`Task ${id} moved back to active list.`, 'info');
+    }
+  }
+
+  function deleteTask(id: string) {
+    if (!window.confirm(`Are you sure you want to delete task ${id}? This action cannot be undone.`)) {
+      return;
+    }
+
+    const index = tasks.findIndex(t => t.id === id);
+    if (index === -1) return;
+
+    tasks.splice(index, 1);
+    saveToStorage();
+    window.showToast(`Task ${id} deleted permanently.`, 'error');
+
+    // Close details drawer if that task was deleted
+    if (selectedTaskId === id) {
+      closeDrawer();
+    }
+  }
+
+  // View Switching Router
+  function setView(view: string) {
+    activeView = view;
+    
+    // Manage sidebar styling active tags
+    document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+      const match = btn.getAttribute('data-sidebar-view') === view;
+      const indicator = btn.querySelector('.sidebar-active-indicator');
+      
+      if (match) {
+        btn.classList.remove('text-body', 'hover:bg-canvas-soft-2');
+        btn.classList.add('text-ink', 'bg-canvas-soft-2', 'font-medium');
+        indicator?.classList.remove('hidden');
+      } else {
+        btn.classList.remove('text-ink', 'bg-canvas-soft-2', 'font-medium');
+        btn.classList.add('text-body', 'hover:bg-canvas-soft-2');
+        indicator?.classList.add('hidden');
+      }
+    });
+
+    // Toggle manager panel vs metrics dashboard view
+    if (view === 'dashboard') {
+      tasksManagerView?.classList.add('hidden');
+      statsDashboardView?.classList.remove('hidden');
+      renderStats();
+    } else {
+      tasksManagerView?.classList.remove('hidden');
+      statsDashboardView?.classList.add('hidden');
+      renderTasks();
+    }
+  }
+
+  // Render Stats & Metrics logic
+  function renderStats() {
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'done').length;
+    const todo = tasks.filter(t => t.status === 'todo').length;
+    const progress = tasks.filter(t => t.status === 'in-progress').length;
+
+    // Rate calculations
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    document.getElementById('stats-completion-percent')!.innerText = `${percent}%`;
+    document.getElementById('stats-completion-bar')!.style.width = `${percent}%`;
+    document.getElementById('stats-completion-fraction')!.innerText = `${completed}/${total}`;
+    
+    document.getElementById('stats-open-tasks')!.innerText = String(todo + progress);
+    document.getElementById('stats-todo-count')!.innerText = String(todo);
+    document.getElementById('stats-inprogress-count')!.innerText = String(progress);
+
+    // Productivity Index rating
+    const highCompleted = tasks.filter(t => t.priority === 'high' && t.status === 'done').length;
+    let rating = 'Low';
+    let ratingDot = 'bg-hairline-strong border-hairline';
+    let ratingLabel = 'Complete more high priority tasks';
+    if (percent >= 75) {
+      rating = 'Extreme';
+      ratingDot = 'bg-highlight-pink border-highlight-magenta';
+      ratingLabel = 'Peak performance achieved today.';
+    } else if (percent >= 45 || highCompleted > 0) {
+      rating = 'Optimal';
+      ratingDot = 'bg-success border-cyan-soft';
+      ratingLabel = 'Milestones progressing on track.';
+    }
+
+    document.getElementById('stats-focus-index')!.innerText = rating;
+    const dot = document.getElementById('stats-focus-dot')!;
+    dot.className = `w-2 .h-2 rounded-full border ${ratingDot}`;
+    document.getElementById('stats-focus-label')!.innerText = ratingLabel;
+
+    // Allocation allocations
+    ['Work', 'Personal', 'Side Projects'].forEach(pName => {
+      const count = tasks.filter(t => t.project === pName).length;
+      const allocPct = total > 0 ? Math.round((count / total) * 100) : 0;
+      let barId = 'stats-bar-' + (pName === 'Side Projects' ? 'Side' : pName);
+      let labelId = 'stats-alloc-' + (pName === 'Side Projects' ? 'Side' : pName);
+      
+      document.getElementById(barId)!.style.width = `${allocPct}%`;
+      document.getElementById(labelId)!.innerText = `${allocPct}% (${count})`;
+    });
+
+    // Priorities
+    ['High', 'Medium', 'Low'].forEach(priority => {
+      const lower = priority.toLowerCase();
+      const count = tasks.filter(t => t.priority === lower).length;
+      const allocPct = total > 0 ? Math.round((count / total) * 100) : 0;
+      let barId = 'stats-bar-' + priority;
+      let labelId = 'stats-priority-' + priority;
+
+      document.getElementById(barId)!.style.width = `${allocPct}%`;
+      document.getElementById(labelId)!.innerText = `${allocPct}% (${count})`;
+    });
+
+    // Completions Audit table rows
+    const tbody = document.getElementById('stats-completed-table-body')!;
+    tbody.innerHTML = '';
+    const completedTasks = tasks.filter(t => t.status === 'done');
+    document.getElementById('stats-log-count')!.innerText = `${completedTasks.length} items`;
+
+    if (completedTasks.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="p-8 text-center text-xs text-mute font-mono">No completions tracked in current backlog</td>
+        </tr>
+      `;
+      return;
+    }
+
+    completedTasks.forEach(task => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-canvas-soft border-b border-hairline';
+      tr.innerHTML = `
+        <td class="p-3 font-mono text-xs text-mute">${task.id}</td>
+        <td class="p-3 font-medium text-ink">${task.title}</td>
+        <td class="p-3 text-xs text-body">${task.project}</td>
+        <td class="p-3"><span class="text-[10px] font-mono uppercase text-mute px-1.5 py-0.5 border border-hairline rounded-sm">${task.priority}</span></td>
+        <td class="p-3 flex items-center gap-1.5 text-xs text-success">
+          <span class="w-1.5 h-1.5 rounded-full bg-success"></span> Completed
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Drawer slider control
+  const drawer = document.getElementById('task-details-drawer')!;
+  const overlay = document.getElementById('drawer-overlay')!;
+  const closeDrawerBtn = document.getElementById('close-drawer-btn')!;
+  const saveDrawerBtn = document.getElementById('save-drawer-btn')!;
+  const deleteTaskBtn = document.getElementById('delete-task-btn')!;
+
+  const dTitle = document.getElementById('drawer-title') as HTMLInputElement;
+  const dStatus = document.getElementById('drawer-status') as HTMLSelectElement;
+  const dPriority = document.getElementById('drawer-priority') as HTMLSelectElement;
+  const dProject = document.getElementById('drawer-project') as HTMLSelectElement;
+  const dDueDate = document.getElementById('drawer-due-date') as HTMLInputElement;
+  const dNotes = document.getElementById('drawer-notes') as HTMLTextAreaElement;
+  
+  const subtaskList = document.getElementById('subtask-list')!;
+  const addSubtaskInput = document.getElementById('add-subtask-input') as HTMLInputElement;
+  const addSubtaskBtn = document.getElementById('add-subtask-btn')!;
+
+  let currentDrawerSubtasks: Subtask[] = [];
+
+  function openDrawer(id: string) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    selectedTaskId = id;
+    currentDrawerSubtasks = JSON.parse(JSON.stringify(task.subtasks || []));
+
+    // Fill form
+    document.getElementById('drawer-task-id')!.innerText = task.id;
+    dTitle.value = task.title;
+    dStatus.value = task.status;
+    dPriority.value = task.priority;
+    dProject.value = task.project;
+    dDueDate.value = task.dueDate || '';
+    dNotes.value = task.notes || '';
+
+    // Render checklist subtasks
+    renderDrawerSubtasks();
+
+    // Show slide animation
+    overlay.classList.remove('hidden');
+    drawer.classList.remove('translate-x-full');
+  }
+
+  function closeDrawer() {
+    selectedTaskId = null;
+    overlay.classList.add('hidden');
+    drawer.classList.add('translate-x-full');
+  }
+
+  function renderDrawerSubtasks() {
+    subtaskList.innerHTML = '';
+    
+    const total = currentDrawerSubtasks.length;
+    const completed = currentDrawerSubtasks.filter(s => s.completed).length;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    document.getElementById('subtask-progress-text')!.innerText = `${pct}% (${completed}/${total})`;
+    document.getElementById('subtask-progress-bar')!.style.width = `${pct}%`;
+
+    currentDrawerSubtasks.forEach((sub, index) => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between gap-2.5 p-2 bg-canvas-soft border border-hairline rounded-sm';
+      div.innerHTML = `
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <input 
+            type="checkbox" 
+            ${sub.completed ? 'checked' : ''} 
+            data-sub-idx="${index}"
+            class="w-3.5 h-3.5 border-hairline-strong rounded-xs text-primary focus:ring-0 cursor-pointer"
+          />
+          <span class="text-xs truncate ${sub.completed ? 'line-through text-mute' : 'text-body'}">${sub.title}</span>
+        </div>
+        <button 
+          data-sub-del-idx="${index}" 
+          class="text-mute hover:text-error-deep cursor-pointer transition-colors p-0.5"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      `;
+      subtaskList.appendChild(div);
+    });
+
+    // Checkbox updates
+    subtaskList.querySelectorAll('[data-sub-idx]').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const idx = parseInt((e.target as HTMLInputElement).getAttribute('data-sub-idx')!);
+        currentDrawerSubtasks[idx].completed = (e.target as HTMLInputElement).checked;
+        renderDrawerSubtasks();
+      });
+    });
+
+    // Subtask delete triggers
+    subtaskList.querySelectorAll('[data-sub-del-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-sub-del-idx')!);
+        currentDrawerSubtasks.splice(idx, 1);
+        renderDrawerSubtasks();
+      });
+    });
+  }
+
+  function saveDrawerChanges() {
+    if (!selectedTaskId) return;
+    const task = tasks.find(t => t.id === selectedTaskId);
+    if (!task) return;
+
+    task.title = dTitle.value.trim() || task.title;
+    task.status = dStatus.value as any;
+    task.priority = dPriority.value as any;
+    task.project = dProject.value;
+    task.dueDate = dDueDate.value;
+    task.notes = dNotes.value;
+    task.subtasks = currentDrawerSubtasks;
+
+    saveToStorage();
+    closeDrawer();
+    window.showToast(`Saved task details for ${task.id}.`, 'success');
+  }
+
+  // Subtask Add event
+  function addSubtaskAction() {
+    const val = addSubtaskInput.value.trim();
+    if (!val) return;
+
+    currentDrawerSubtasks.push({
+      id: `sub-${Date.now()}`,
+      title: val,
+      completed: false
+    });
+    
+    addSubtaskInput.value = '';
+    renderDrawerSubtasks();
+  }
+
+  // Cmd+K Command Console modal triggers
+  const consoleModal = document.getElementById('command-bar-modal')!;
+  const consoleCard = document.getElementById('command-bar-card')!;
+  const consoleInput = document.getElementById('command-bar-input') as HTMLInputElement;
+  const consoleLauncher = document.getElementById('launcher-btn')!;
+
+  function showConsole() {
+    consoleModal.classList.remove('hidden');
+    // Simple micro-animation timing
+    setTimeout(() => {
+      consoleCard.classList.remove('scale-95', 'opacity-0');
+      consoleInput.value = '';
+      consoleInput.focus();
+    }, 50);
+  }
+
+  function hideConsole() {
+    consoleCard.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+      consoleModal.classList.add('hidden');
+    }, 150);
+  }
+
+  // Command parser logic for input
+  function handleConsoleSubmit(inputVal: string) {
+    const cmd = inputVal.trim();
+    if (!cmd) return;
+
+    if (cmd.startsWith('/add ')) {
+      const title = cmd.substring(5);
+      createTask(title, 'Inbox', 'medium');
+      hideConsole();
+    } else if (cmd.startsWith('/done ')) {
+      const query = cmd.substring(6).trim().toLowerCase();
+      // Find matching index or ID suffix
+      const match = tasks.find(t => t.id.toLowerCase().endsWith(query) || t.title.toLowerCase().includes(query));
+      if (match) {
+        toggleTaskDone(match.id);
+      } else {
+        window.showToast(`Task "${query}" not found.`, 'error');
+      }
+      hideConsole();
+    } else if (cmd.startsWith('/delete ')) {
+      const query = cmd.substring(8).trim().toLowerCase();
+      const match = tasks.find(t => t.id.toLowerCase().endsWith(query) || t.title.toLowerCase().includes(query));
+      if (match) {
+        deleteTask(match.id);
+      } else {
+        window.showToast(`Task "${query}" not found.`, 'error');
+      }
+      hideConsole();
+    } else if (cmd.startsWith('/project ')) {
+      const proj = cmd.substring(9).trim();
+      const match = ['Work', 'Personal', 'Side Projects', 'Inbox'].find(p => p.toLowerCase() === proj.toLowerCase());
+      if (match) {
+        setView(match === 'Inbox' ? 'all' : `project-${match}`);
+        window.showToast(`Switched view to project: ${match}.`, 'info');
+      } else {
+        window.showToast(`Project "${proj}" not found.`, 'error');
+      }
+      hideConsole();
+    } else if (cmd === '/clear') {
+      const completedCount = tasks.filter(t => t.status === 'done').length;
+      tasks = tasks.filter(t => t.status !== 'done');
+      saveToStorage();
+      window.showToast(`Cleared ${completedCount} completed tasks.`, 'info');
+      hideConsole();
+    } else {
+      // Treat general input without prefix as custom add task
+      createTask(cmd, 'Inbox', 'medium');
+      hideConsole();
+    }
+  }
+
+  // Click & Keyboard triggers wiring
+  document.addEventListener('DOMContentLoaded', () => {
+    initStore();
+
+    // Setup active state rendering
+    setView('all');
+
+    // Quick add submit click
+    quickBtn?.addEventListener('click', () => {
+      createTask(quickInput.value, quickProject.value, quickPriority.value as any);
+      quickInput.value = '';
+    });
+    quickInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        createTask(quickInput.value, quickProject.value, quickPriority.value as any);
+        quickInput.value = '';
+      }
+    });
+
+    // Input search binding
+    searchInput?.addEventListener('input', (e) => {
+      searchTerm = (e.target as HTMLInputElement).value;
+      renderTasks();
+    });
+
+    // Sort order select binding
+    sortSelect?.addEventListener('change', (e) => {
+      sortBy = (e.target as HTMLSelectElement).value;
+      renderTasks();
+    });
+
+    // Drawer close binds
+    closeDrawerBtn?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
+    saveDrawerBtn?.addEventListener('click', saveDrawerChanges);
+    deleteTaskBtn?.addEventListener('click', () => {
+      if (selectedTaskId) {
+        deleteTask(selectedTaskId);
+      }
+    });
+
+    // Subtask click triggers
+    addSubtaskBtn?.addEventListener('click', addSubtaskAction);
+    addSubtaskInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addSubtaskAction();
+      }
+    });
+
+    // Responsive sidebar mobile menu binds
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    const sidebarMobileOverlay = document.getElementById('sidebar-mobile-overlay');
+    const taskSidebar = document.getElementById('task-sidebar');
+
+    function toggleMobileSidebar() {
+      if (!taskSidebar) return;
+      const isOpen = taskSidebar.classList.contains('sidebar-open');
+      if (isOpen) {
+        taskSidebar.classList.remove('sidebar-open');
+        sidebarMobileOverlay?.classList.add('hidden');
+      } else {
+        taskSidebar.classList.add('sidebar-open');
+        sidebarMobileOverlay?.classList.remove('hidden');
+      }
+    }
+
+    function closeMobileSidebar() {
+      if (taskSidebar && taskSidebar.classList.contains('sidebar-open')) {
+        taskSidebar.classList.remove('sidebar-open');
+        sidebarMobileOverlay?.classList.add('hidden');
+      }
+    }
+
+    sidebarToggleBtn?.addEventListener('click', toggleMobileSidebar);
+    sidebarMobileOverlay?.addEventListener('click', closeMobileSidebar);
+
+    // Sidebar navigation views trigger
+    document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.getAttribute('data-sidebar-view')!;
+        setView(view);
+        closeMobileSidebar();
+      });
+    });
+
+    // Filter control buttons bind
+    document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab-btn').forEach(b => {
+          b.className = 'filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill text-body hover:text-ink hover:bg-canvas-soft-2 cursor-pointer transition-all';
+        });
+        btn.className = 'filter-tab-btn px-3 py-1.5 text-xs font-medium rounded-pill bg-primary text-on-primary cursor-pointer transition-all';
+        
+        statusFilter = btn.getAttribute('data-filter')!;
+        renderTasks();
+      });
+    });
+
+    // Cmd+K Launcher trigger click
+    consoleLauncher?.addEventListener('click', showConsole);
+    consoleModal?.addEventListener('click', hideConsole);
+    consoleCard?.addEventListener('click', (e) => e.stopPropagation()); // prevent modal close on inner card click
+
+    // Close on command console suggestion click
+    document.querySelectorAll('.command-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const cmd = opt.getAttribute('data-command')!;
+        let prefix = '/add ';
+        if (cmd === 'complete') prefix = '/done ';
+        if (cmd === 'delete') prefix = '/delete ';
+        if (cmd === 'project') prefix = '/project ';
+        if (cmd === 'clear') prefix = '/clear';
+
+        consoleInput.value = prefix;
+        consoleInput.focus();
+      });
+    });
+
+    // Global Key Listener for Cmd+K and Esc
+    document.addEventListener('keydown', (e) => {
+      // Toggle Cmd+K console
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (consoleModal.classList.contains('hidden')) {
+          showConsole();
+        } else {
+          hideConsole();
+        }
+      }
+
+      // Close overlays on escape
+      if (e.key === 'Escape') {
+        if (!consoleModal.classList.contains('hidden')) hideConsole();
+        if (selectedTaskId) closeDrawer();
+      }
+    });
+
+    // Modal input enter submission handler
+    consoleInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleConsoleSubmit(consoleInput.value);
+      }
+    });
+  });
+</script>
